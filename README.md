@@ -1,4 +1,4 @@
-# Description
+## Description
 A container for detecting text in PDF files using tesseract-ocr.
 ## Build
 ```
