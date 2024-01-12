@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  ocrmypdf-service:
+    container_name: ocrmypdf
+    image: ocrmypdf-container:latest
+    volumes:
+      - ~/ocr:/app/data
+    restart: unless-stopped
