@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy files to container
-COPY requirements.txt /app/
 COPY ocr.py /app/
 
 # Create and activate Python virtual environment
@@ -24,7 +23,7 @@ ENV PATH="/app/venv/bin:$PATH"
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir watchdog
 
 # Command to be executed when container starts
 CMD ["python", "ocr.py"]
