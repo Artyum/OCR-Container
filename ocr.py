@@ -50,9 +50,8 @@ class Handler(FileSystemEventHandler):
             text_output_path = os.path.join(Watcher.DIRECTORY_OUTPUT, os.path.splitext(os.path.basename(file_path))[0] + '.txt')
 
             # Check if the output file already exists, and delete it if it does
-            if os.path.exists(ocr_output_path):
-                os.remove(ocr_output_path)
-                os.remove(text_output_path)
+            if os.path.exists(ocr_output_path): os.remove(ocr_output_path)
+            if os.path.exists(text_output_path): os.remove(text_output_path)
             
             # Extract text from the PDF using OCRmyPDF
             result = subprocess.call(['ocrmypdf', '--image-dpi', '300', '--optimize', '3', '--output-type', 'pdfa', '--redo-ocr', '--tesseract-oem', '1', '-l', 'pol', file_path, ocr_output_path])
