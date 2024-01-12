@@ -1,22 +1,19 @@
-**Opis**<br/>
-Kontener do wykrywania tekstu w plikach PDF z wykorzystaniem tesseract-ocr.<br/>
-<br/>
-**Build**<br/>
+# Description
+A container for detecting text in PDF files using tesseract-ocr.
+## Build
 ```
 docker build -t ocrmypdf-container .
 docker-compose up -d
 ```
-**Przygotowanie**<br/>
-Struktura katalogów wykorzystywana przez program:<br/>
-```
-~/ocr
-~/ocr/done
-~/ocr/error
-~/ocr/input
-~/ocr/output
-```
-**Użycie**<br/>
-Wgraj pliki PDF do katalogu input<br/>
-Poczekaj, aż program przetworzy pliki<br/>
-Przetworzone pliki zostaną zapisane w katalogu output<br/>
-Oryginalne pliki zostaną przeniesione do katalogów done lub error w przypadku powodzenia lub problemu z przetworzeniem
+## Preparation
+Directory structure used by the program:
+- ~/ocr
+- ~/ocr/done
+- ~/ocr/error
+- ~/ocr/input
+- ~/ocr/output
+## Usage
+1. Upload PDF files to the input directory.
+2. Wait for the program to process the files.
+3. Processed files will be saved in the output directory.
+4. Original files will be moved to the done or error directories in case of success or a processing problem.
