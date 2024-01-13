@@ -7,8 +7,25 @@ import concurrent.futures
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-# Set up logging
-logging.basicConfig(filename='/app/data/ocrmypdf.log', level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
+class Config:
+    max_workers = 3
+    language = 'pol'
+
+    @staticmethod
+    def load_config():
+        try:
+            with open('/app/data/config.txt', 'r') as file:
+                for line in file:
+                    name, value = line.partition("=")[::2]
+                    if name.strip() == 'max_workers':
+                        Config.max_workers = int(value.strip())
+                    elif name.strip() == 'language':
+                        Config.language = value.strip()
+        except Exception as e:
+            logging.error(f"Error loading config file: {e}")
+        
+        logging.info(f"max_workers={Config.max_workers}")
+        logging.info(f"language={Config.language}")
 
 class Watcher:
     DIRECTORY_TO_WATCH = "/app/data/input"  # Directory to watch for new PDF files
@@ -18,6 +35,7 @@ class Watcher:
     
     def __init__(self):
         self.observer = Observer()
+        Config.load_config()
 
     def run(self):
         event_handler = Handler()
@@ -32,7 +50,7 @@ class Watcher:
 
 class Handler(FileSystemEventHandler):
     def __init__(self):
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=Config.max_workers)
 
     def __del__(self):
         self.executor.shutdown(wait=True)
@@ -54,7 +72,7 @@ class Handler(FileSystemEventHandler):
             if os.path.exists(text_output_path): os.remove(text_output_path)
             
             # Extract text from the PDF using OCRmyPDF
-            result = subprocess.call(['ocrmypdf', '--image-dpi', '300', '--optimize', '3', '--output-type', 'pdfa', '--redo-ocr', '--tesseract-oem', '1', '-l', 'pol', file_path, ocr_output_path])
+            result = subprocess.call(['ocrmypdf', '--image-dpi', '300', '--optimize', '3', '--output-type', 'pdfa', '--redo-ocr', '--tesseract-oem', '1', '-l', Config.language, file_path, ocr_output_path])
 
             # Extract text from the processed PDF using pdftotext if OCR is successful
             if result == 0:
@@ -70,6 +88,7 @@ class Handler(FileSystemEventHandler):
             logging.error(f"Error processing file {file_path}: {e}")
 
 if __name__ == '__main__':
+    logging.basicConfig(filename='/app/data/ocr.log', level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
     logging.info(f"START")
     w = Watcher()
     w.run()

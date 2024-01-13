@@ -4,15 +4,32 @@ FROM python:3.8-slim
 RUN apt-get update && apt-get install -y \
   ocrmypdf \
   tesseract-ocr \
-  tesseract-ocr-pol \
+  tesseract-ocr-* \
   poppler-utils \
   pdftk \
   vim \
-  inotify-tools \
+  inotify-tools
+
+RUN apt-get install -y \
+  git \
+  zlib1g-dev \
+  autotools-dev \
+  make \
+  g++ \
+  automake \
+  libtool \
+  libleptonica-dev \
   && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
+
+# Clone and build jbig2enc
+RUN git clone https://github.com/agl/jbig2enc \
+  && cd jbig2enc \
+  && ./autogen.sh \
+  && ./configure && make \
+  && make install
 
 # Copy files to container
 COPY ocr.py /app/
