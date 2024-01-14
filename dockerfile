@@ -4,11 +4,14 @@ FROM python:3.8-slim
 RUN apt-get update && apt-get install -y \
   ocrmypdf \
   tesseract-ocr \
-  tesseract-ocr-* \
+  tesseract-ocr-pol \
+  #tesseract-ocr-* \
   poppler-utils \
   pdftk \
   vim \
-  inotify-tools
+  inotify-tools \
+  pngquant \
+  wget
 
 RUN apt-get install -y \
   git \
@@ -30,6 +33,10 @@ RUN git clone https://github.com/agl/jbig2enc \
   && ./autogen.sh \
   && ./configure && make \
   && make install
+
+# Download best (most accurate) trained LSTM models
+# https://github.com/tesseract-ocr/tessdata_best
+RUN wget https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/main/pol.traineddata -O /usr/share/tesseract-ocr/5/tessdata/pol.traineddata
 
 # Copy files to container
 COPY ocr.py /app/

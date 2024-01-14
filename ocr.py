@@ -8,8 +8,11 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 class Config:
-    max_workers = 3
-    language = 'pol'
+    max_workers = 2     # default number of concurrent workers
+    language = 'pol'    # default language
+    image_dpi = 300     # default DPI value
+    optimize = 3        # default optimize level
+    tesseract_oem = 2   # default tesseract-oem
 
     @staticmethod
     def load_config():
@@ -21,11 +24,20 @@ class Config:
                         Config.max_workers = int(value.strip())
                     elif name.strip() == 'language':
                         Config.language = value.strip()
+                    elif name.strip() == 'image_dpi':
+                        Config.image_dpi = int(value.strip())
+                    elif name.strip() == 'optimize':
+                        Config.optimize = int(value.strip())
+                    elif name.strip() == 'tesseract-oem':
+                        Config.tesseract_oem = int(value.strip())
         except Exception as e:
             logging.error(f"Error loading config file: {e}")
         
         logging.info(f"max_workers={Config.max_workers}")
         logging.info(f"language={Config.language}")
+        logging.info(f"image_dpi={Config.image_dpi}")
+        logging.info(f"optimize={Config.optimize}")
+        logging.info(f"tesseract-oem={Config.tesseract_oem}")
 
 class Watcher:
     DIRECTORY_TO_WATCH = "/app/data/input"  # Directory to watch for new PDF files
@@ -62,30 +74,32 @@ class Handler(FileSystemEventHandler):
 
     @staticmethod
     def process_pdf(file_path):
+        logging.info(f"Received new file: {file_path}")
+        ocr_output_path = os.path.join(Watcher.DIRECTORY_OUTPUT, os.path.basename(file_path))
+        text_output_path = os.path.join(Watcher.DIRECTORY_OUTPUT, os.path.splitext(os.path.basename(file_path))[0] + '.txt')
+        done_path = os.path.join(Watcher.DIRECTORY_DONE, os.path.basename(file_path))
+        error_path = os.path.join(Watcher.DIRECTORY_ERROR, os.path.basename(file_path))
+
+        # Clean old files
+        for path in [ocr_output_path, text_output_path, done_path, error_path]:
+            if os.path.exists(path):
+                os.remove(path)
+        
+        # Extract text from the PDF using OCRmyPDF
         try:
-            logging.info(f"Received new file: {file_path}")
-            ocr_output_path = os.path.join(Watcher.DIRECTORY_OUTPUT, os.path.basename(file_path))
-            text_output_path = os.path.join(Watcher.DIRECTORY_OUTPUT, os.path.splitext(os.path.basename(file_path))[0] + '.txt')
-
-            # Check if the output file already exists, and delete it if it does
-            if os.path.exists(ocr_output_path): os.remove(ocr_output_path)
-            if os.path.exists(text_output_path): os.remove(text_output_path)
-            
-            # Extract text from the PDF using OCRmyPDF
-            result = subprocess.call(['ocrmypdf', '--image-dpi', '300', '--optimize', '3', '--output-type', 'pdfa', '--redo-ocr', '--tesseract-oem', '1', '-l', Config.language, file_path, ocr_output_path])
-
-            # Extract text from the processed PDF using pdftotext if OCR is successful
-            if result == 0:
-                subprocess.call(['pdftotext', '-layout', ocr_output_path, text_output_path])
-                shutil.move(file_path, Watcher.DIRECTORY_DONE)
-                logging.info(f"Processed and moved to done: {file_path}")
-            else:
-                shutil.move(file_path, Watcher.DIRECTORY_ERROR)
-                logging.error(f"Processing failed, moved to error: {file_path}")
-
+            result = subprocess.call(['ocrmypdf', '--image-dpi', str(Config.image_dpi), '--clean', '--optimize', str(Config.optimize), '--output-type', 'pdfa', '--redo-ocr', '--tesseract-oem', str(Config.tesseract_oem), '-l', Config.language, file_path, ocr_output_path])
         except Exception as e:
             shutil.move(file_path, Watcher.DIRECTORY_ERROR)
             logging.error(f"Error processing file {file_path}: {e}")
+        
+        # Extract text from the processed PDF using pdftotext if OCR is successful
+        if result == 0:
+            subprocess.call(['pdftotext', '-layout', ocr_output_path, text_output_path])
+            shutil.move(file_path, Watcher.DIRECTORY_DONE)
+            logging.info(f"Processed and moved to done: {file_path}")
+        else:
+            shutil.move(file_path, Watcher.DIRECTORY_ERROR)
+            logging.error(f"Processing failed, moved to error: {file_path}")
 
 if __name__ == '__main__':
     logging.basicConfig(filename='/app/data/ocr.log', level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
