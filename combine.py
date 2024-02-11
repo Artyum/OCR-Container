@@ -9,7 +9,7 @@ from watchdog.events import FileSystemEventHandler
 
 class CombineWatcher:
     DIRECTORY_TO_WATCH = "/app/data/combine"
-    DIRECTORY_OUTPUT = "/app/data/output"
+    DIRECTORY_OUTPUT = "/app/data/input"  # Save combined pdf to the OCR input folder 
     DIRECTORY_DONE = "/app/data/done"
 
     def __init__(self):
