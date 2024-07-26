@@ -56,6 +56,7 @@ tesseract-oem = 2
 **4. Setup language in the dockerfile**
 
 ##### 1. Install the required language packs:
+[Languages/Scripts supported in Tesseract](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions.html)
 ```
 RUN apt-get update && apt-get install -y \
   ocrmypdf \
@@ -65,6 +66,7 @@ RUN apt-get update && apt-get install -y \
   (...)
 ```
 ##### 2. Download the appropriate language model file
+[Choose your model](https://github.com/tesseract-ocr) and set the line:
 ```
 RUN wget https://raw.githubusercontent.com/tesseract-ocr/tessdata/main/pol.traineddata -O /usr/share/tesseract-ocr/5/tessdata/pol.traineddata
 ```
