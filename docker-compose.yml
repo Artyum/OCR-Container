@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   ocrmypdf-service:
-    container_name: ocrmypdf
-    image: ocrmypdf-container:latest
+    container_name: ocr-machine
+    image: huculski/ocr-machine:latest
     volumes:
       - ~/ocr:/app/data
     restart: unless-stopped
