@@ -18,7 +18,7 @@ The config.txt must be created manually.
 3. Original files will be moved to the done or error directories in case of success or a processing problem.
 4. Processed files will be saved in the output directory, accompanied by a .txt file containing the extracted text for each document.
 
-### Conver and Combine
+### Convert and Combine
 1. Upload one or multiple PDF,PNG,JPG files to the combine directory.
 2. JPG and PNG files will be automatically converted to PDF.
 3. All PDF files will be merged in alphabetical order into a single file named Combined.pdf.
