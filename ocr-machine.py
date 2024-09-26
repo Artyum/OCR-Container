@@ -59,6 +59,7 @@ def create_directories(directories):
     for key, directory in directories.items():
         try:
             os.makedirs(directory, exist_ok=True)
+            os.chmod(directory, 0o777)
         except Exception as e:
             logging.error(f"Failed to create directory '{directory}': {e}")
 
@@ -92,13 +93,6 @@ class Config:
         except Exception as e:
             logging.error(f"Error loading config file: {e}")
 
-        logging.info("Configuration loaded:")
-        logging.info(f" - max_workers={Config.max_workers}")
-        logging.info(f" - language={Config.language}")
-        logging.info(f" - image_dpi={Config.image_dpi}")
-        logging.info(f" - optimize={Config.optimize}")
-        logging.info(f" - tesseract-oem={Config.tesseract_oem}")
-
 # ================================
 # Watcher Class
 # ================================
@@ -111,6 +105,7 @@ class Watcher:
         create_directories(WATCHER_DIRECTORIES)
         
         self.observer = PollingObserver(timeout=5)
+        logging.info("Loading configuration")
         Config.load_config()
 
     def run(self):
@@ -151,6 +146,9 @@ class Handler(FileSystemEventHandler):
 
     @staticmethod
     def process_pdf(file_path):
+        # Load configuration before processing
+        Config.load_config()
+        
         logging.info(f"Processing new file: {file_path}")
         ocr_output_path = os.path.join(WATCHER_DIRECTORIES["output"], os.path.basename(file_path))
         text_output_path = os.path.join(WATCHER_DIRECTORIES["output"], os.path.splitext(os.path.basename(file_path))[0] + '.txt')
@@ -177,7 +175,7 @@ class Handler(FileSystemEventHandler):
             file_path,
             ocr_output_path
         ]
-        logging.info(f"Executing command: {' '.join(command)}")
+        # logging.info(f"Executing command: {' '.join(command)}")
         
         # Extract text from the PDF using OCRmyPDF
         try:
@@ -188,21 +186,21 @@ class Handler(FileSystemEventHandler):
             if result != 0:
                 # If OCR failed, log the error with the exit code
                 logging.error(f"OCRmyPDF failed with exit code {result} for file {file_path}")
-                shutil.move(file_path, Watcher.DIRECTORIES_ERROR)
+                shutil.move(file_path, WATCHER_DIRECTORIES["error"])
             else:
                 # If OCR succeeded, proceed to extract text from the PDF
                 subprocess.call(['pdftotext', '-layout', ocr_output_path, text_output_path])
-                shutil.move(file_path, Watcher.DIRECTORIES_DONE)
+                shutil.move(file_path, WATCHER_DIRECTORIES["done"])
                 logging.info(f"Processed and moved to done: {file_path}")
 
         except subprocess.CalledProcessError as e:
             # Capture and log details when OCRmyPDF throws a CalledProcessError
             logging.error(f"Error during OCR processing of file {file_path}. Command: {e.cmd}, Return code: {e.returncode}, Output: {e.output}")
-            shutil.move(file_path, Watcher.DIRECTORIES_ERROR)
+            shutil.move(file_path, WATCHER_DIRECTORIES["error"])
 
         except Exception as e:
             # Handle any other general errors and log them with details
-            shutil.move(file_path, Watcher.DIRECTORIES_ERROR)
+            shutil.move(file_path, WATCHER_DIRECTORIES["error"])
             logging.error(f"General error processing file {file_path}: {str(e)}")
 
 # ================================

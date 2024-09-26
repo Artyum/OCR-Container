@@ -29,7 +29,7 @@ RUN add-apt-repository ppa:alex-p/tesseract-ocr-devel \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
     tesseract-ocr \
-    tesseract-ocr-pol \
+    tesseract-ocr-all \
     ocrmypdf \
     poppler-utils \
     pdftk \
@@ -52,8 +52,12 @@ RUN git clone https://github.com/agl/jbig2enc.git /tmp/jbig2enc \
 # Set the working directory
 WORKDIR /app
 
-# Trained models with fast variant of the "best" LSTM models + legacy models
-RUN wget https://raw.githubusercontent.com/tesseract-ocr/tessdata/main/pol.traineddata -O /usr/share/tesseract-ocr/5/tessdata/pol.traineddata
+# Download trained models with fast variant of the "best" LSTM models + legacy models
+# Save in /usr/share/tesseract-ocr/5/tessdata/
+RUN git clone https://github.com/tesseract-ocr/tessdata.git \
+    && mv -f tessdata/*traineddata /usr/share/tesseract-ocr/5/tessdata/ \
+    && mv -f tessdata/script /usr/share/tesseract-ocr/5/tessdata/ \
+    && rm -rf tessdata
 
 # Install Python dependencies
 RUN pip3 install --no-cache-dir --upgrade pip \
