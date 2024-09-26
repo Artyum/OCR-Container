@@ -2,12 +2,18 @@
 # Description
 OCR-Machine is a container for text detection in PDF files using OCRMyPDF and Tesseract-OCR.
 It can be run as a standalone Docker image and is also supported on Kubernetes.
+The Docker image includes all languages supported by Tesseract. Please set the appropriate language in the configuration file.
 
 ## Features:
 - Apply OCR using AI
 - Convert PNG and JPG to PDF
 - Merge multiple files into a single PDF
 - Extract text into a TXT file
+
+## Requirements
+- 3GB HDD
+- 3GB RAM
+
 # Usage
 After starting, the application will automatically create required directories and a log file in the home folder.
 The config.txt must be created manually.
@@ -25,45 +31,10 @@ The config.txt must be created manually.
 4. The Combined.pdf file will then be automatically moved to the Input folder and processed using OCR.
 5. The final file will be saved in the Output folder.
 
-# Configuration
-Create a configuraion file: ~/ocr/config.txt
-```
-# Number of documents being processed at the same time
-max_workers = 2
-
-# Language(s) of the file to be OCRed (see tesseract --list-langs for all language packs installed in your system). Use -l eng+deu for multiple languages.
-language = pol
-
-# For input image instead of PDF, use this DPI instead of file's.
-image_dpi = 300
-
-# Control  how  PDF  is optimized after processing:
-# 0 - do not optimize; 1 - do safe, lossless optimizations (default); 2 - do some lossy optimizations; 3 - do aggressive
-optimize = 1
-
-# Set Tesseract OCR engine mode: 0 - original Tesseract only; 1 - neural nets LSTM only; 2 - Tesseract + LSTM; 3 - default.
-tesseract-oem = 2
-```
 # Installation in Docker container
-##### 1. Install the required language packs:
-[Languages/Scripts supported in Tesseract](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions.html)
 ```
-RUN apt-get update && apt-get install -y \
-  ocrmypdf \
-  tesseract-ocr \
-  tesseract-ocr-pol \
-  #tesseract-ocr-* \
-  (...)
-```
-##### 2. Setup the appropriate language model file
-[Choose your model](https://github.com/tesseract-ocr) and set the line:
-```
-RUN wget https://raw.githubusercontent.com/tesseract-ocr/tessdata/main/pol.traineddata -O /usr/share/tesseract-ocr/5/tessdata/pol.traineddata
-```
-
-#### Build and run the container
-```
-docker build -t ocr-machine .
+# Clone the repository
+# (optional) docker build -t ocr-machine .
 docker compose up -d
 ```
 # Installation in Kubernetes
@@ -137,4 +108,25 @@ spec:
 kubectl apply -f ocr-pv.yaml
 kubectl apply -f ocr-pvc.yaml  
 kubectl apply -f ocr-deployment-pvc.yaml
+```
+
+# Configuration
+Create a configuraion file: ~/ocr/config.txt
+The configuration is automatically loaded at the start of each OCR processing. There is no need to restart the container to apply changes to the file.
+```
+# Number of documents being processed at the same time
+max_workers = 2
+
+# Language of the file to be OCRed (see https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions.html for supported language packs).
+language = pol
+
+# For input image instead of PDF, use this DPI instead of file's.
+image_dpi = 300
+
+# Control  how  PDF  is optimized after processing:
+# 0 - do not optimize; 1 - do safe, lossless optimizations (default); 2 - do some lossy optimizations; 3 - do aggressive
+optimize = 1
+
+# Set Tesseract OCR engine mode: 0 - original Tesseract only; 1 - neural nets LSTM only; 2 - Tesseract + LSTM; 3 - default.
+tesseract-oem = 2
 ```
