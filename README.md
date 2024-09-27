@@ -40,6 +40,23 @@ docker compose up -d
 # Installation in Kubernetes
 Prepare a persistent volume for the container for example: //fileserver/OCR
 #### YAML configuration
+
+Password for the Secret
+```
+echo -n 'password' | base64
+```
+smb-secret.yaml
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: smb-secret
+  namespace: default
+type: Opaque
+data:
+  username: ******
+  password: ******
+```
 ocr-pv.yaml
 ```
 apiVersion: v1
@@ -105,6 +122,7 @@ spec:
 ```
 #### Start Pods
 ```
+kubectl apply -f smb-secret.yaml
 kubectl apply -f ocr-pv.yaml
 kubectl apply -f ocr-pvc.yaml  
 kubectl apply -f ocr-deployment-pvc.yaml
