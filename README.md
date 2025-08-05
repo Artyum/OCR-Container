@@ -148,3 +148,14 @@ optimize = 1
 # Set Tesseract OCR engine mode: 0 - original Tesseract only; 1 - neural nets LSTM only; 2 - Tesseract + LSTM; 3 - default.
 tesseract-oem = 2
 ```
+
+# docker-compose.yml
+```
+services:
+  ocr-machine:
+    image: huculski/ocr-machine:latest
+    container_name: ocr-machine
+    restart: unless-stopped
+    volumes:
+      - ./ocr:/app/data
+```
